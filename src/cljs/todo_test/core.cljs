@@ -38,32 +38,22 @@
        [:input.toggle {:type "checkbox"}]
        [:label {:on-double-click #(reset! editing true)} title]]])))
 
-(defn todo-app [props]
-    (fn []
-      (let [items (vals @todos)]
-        [:div
-         [:section#todoapp
-          [:header#header
-           [:h1 "todos"]
-           [todo-input {:id "new-todo"
-                        :placeholder "What needs to be done?"
-                        :on-save add-todo}]]
-          (when (-> items count pos?)
-            [:div
-             [:section#main
-              [:input#toggle-all {:type "checkbox"}]
-
-              [:ul#todo-list
-               (for [todo items]
-                 ^{:key (:id todo)} [todo-item todo])]]])]])))
-
 ;; -------------------------
 ;; Views
 
 (defn home-page []
   [:div [:h2 "Welcome to todo-test"]
-   [:div [:a {:href "/about"} "go to about page"]]]
-  [todo-app])
+   [:div [:a {:href "/about"} "go to about page"]]
+   (let [items (vals @todos)]
+      [:section#todoapp
+        [todo-input {:id "new-todo"
+                     :placeholder "What needs to be done?"
+                     :on-save add-todo}]
+       (when (-> items count pos?)
+          [:section#main
+           [:ul#todo-list
+            (for [todo items]
+              ^{:key (:id todo)} [todo-item todo])]])])])
 
 (defn about-page []
   [:div [:h2 "About todo-test"]
