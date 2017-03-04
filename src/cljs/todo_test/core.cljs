@@ -31,12 +31,11 @@
                                nil)}])))
 
 (defn todo-item []
- (let [editing (reagent/atom false)]
-   (fn [{:keys [id done title]}]
+   (fn [{:keys [title]}]
      [:li
       [:div.view
        [:input.toggle {:type "checkbox"}]
-       [:label {:on-double-click #(reset! editing true)} title]]])))
+       [:label title]]]))
 
 ;; -------------------------
 ;; Views
