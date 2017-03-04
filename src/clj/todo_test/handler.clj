@@ -26,11 +26,16 @@
      mount-target
      (include-js "/js/app.js")]))
 
+(defn loading-test []
+  (str "hello there"))
+
+
 
 (defroutes routes
   (GET "/" [] (loading-page))
   (GET "/about" [] (loading-page))
-  
+  (GET "/test" [] (loading-test))
+
   (resources "/")
   (not-found "Not Found"))
 
