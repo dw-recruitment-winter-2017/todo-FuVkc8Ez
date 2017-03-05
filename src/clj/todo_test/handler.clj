@@ -19,22 +19,23 @@
            :content "width=device-width, initial-scale=1"}]
    (include-css (if (env :dev) "/css/site.css" "/css/site.min.css"))])
 
+(def todolist (atom ""))
+
 (defn loading-page []
   (html5
     (head)
     [:body {:class "body-container"}
      mount-target
-     (include-js "/js/app.js")]))
+     (include-js "/js/app.js")
+     (swap! todolist println "take out more trash")]))
 
-(defn loading-test []
+(defn list-get []
   (str "hello there"))
 
-
-
 (defroutes routes
-  (GET "/" [] (loading-page))
+  (GET "/" request (loading-page))
   (GET "/about" [] (loading-page))
-  (GET "/test" [] (loading-test))
+  (GET "/listget" [] (list-get))
 
   (resources "/")
   (not-found "Not Found"))

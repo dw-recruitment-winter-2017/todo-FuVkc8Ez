@@ -2,7 +2,8 @@
     (:require [reagent.core :as reagent :refer [atom]]
               [reagent.session :as session]
               [secretary.core :as secretary :include-macros true]
-              [accountant.core :as accountant]))
+              [accountant.core :as accountant]
+              [ajax.core :refer [POST]]))
 
 (defonce todos (reagent/atom (sorted-map)))
 (defonce counter (reagent/atom 0))
@@ -10,6 +11,7 @@
 (defn add-todo [text]
   (let [id (swap! counter inc)]
     (swap! todos assoc id {:id id :title text :done false})))
+    ; (POST "/"){:params (:doc @todos) :handler (fn [_] (swap! todos assoc :saved? true))})
 
 (defn save [id title] (swap! todos assoc-in [id :title] title))
 
@@ -41,12 +43,12 @@
 ;; Views
 
 (defn home-page []
-  [:div [:h2 "Welcome to todo-test"]
-   [:div [:a {:href "/about"} "go to about page"]]
+  [:main
+   [:div#heading [:h2 "Welcome to your To Do List"][:a {:href "/about"} "Learn More"]]
    (let [items (vals @todos)]
       [:section#todoapp
         [todo-input {:id "new-todo"
-                     :placeholder "What needs to be done?"
+                     :placeholder "Add a To Do"
                      :on-save add-todo}]
        (when (-> items count pos?)
           [:section#main
@@ -55,8 +57,9 @@
               ^{:key (:id todo)} [todo-item todo])]])])])
 
 (defn about-page []
-  [:div [:h2 "About todo-test"]
-   [:div [:a {:href "/"} "go to the home page"]]])
+  [:main
+   [:div#heading [:h2 "About your To Do List"] [:a {:href "/"} "Back to the list"]]
+   [:p "This is a simple To Do list app built with Clojure using reagent and compojure."]])
 
 (defn current-page []
   [:div [(session/get :current-page)]])
@@ -69,6 +72,7 @@
 
 (secretary/defroute "/about" []
   (session/put! :current-page #'about-page))
+
 
 ;; -------------------------
 ;; Initialize app
