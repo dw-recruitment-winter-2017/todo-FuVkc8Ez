@@ -5,56 +5,57 @@
               [accountant.core :as accountant]
               [ajax.core :refer [POST]]))
 
-(defonce todos (reagent/atom (sorted-map)))
-(defonce counter (reagent/atom 0))
+(defonce state-atom
+ (reagent/atom
+   {:todos {}
+    :text nil}))
 
 (defn add-todo [text]
-  (let [id (swap! counter inc)]
-    (swap! todos assoc id {:id id :title text :done false})))
-    ; (POST "/"){:params (:doc @todos) :handler (fn [_] (swap! todos assoc :saved? true))})
+  ;; POST to backend
+  ;; improvement: add an error handler
+  (POST "/list"
+        {:params {0
+          {:id 0
+          :text "a b c"
+          :open true}}
+          :handler (fn [data]
+            new-state (clojure.edn/read-string data)))})
+  ;; ^ Take backend's response
+  ;; Parse response with edn and put it in state-atom
+  ;; swap! todos with new db value
+  )
 
-(defn save [id title] (swap! todos assoc-in [id :title] title))
+(defn todo-input [text]
+  [:input {:type "text" :value text
+           :id "new-todo" :placeholder "What needs to be done?"
+           :on-change
+           #(swap! state-atom
+             (fn [state]
+               (assoc state :text (-> % .-target .-value))))]
+           ))
 
-(defn todo-input [{:keys [title on-save on-stop]}]
-  (let [val (reagent/atom title)
-        stop #(do (reset! val "")
-                  (if on-stop (on-stop)))
-        save #(let [v (-> @val str clojure.string/trim)]
-                (if-not (empty? v) (on-save v))
-                (stop))]
-    (fn [{:keys [id class placeholder]}]
-      [:input {:type "text" :value @val
-               :id id :class class :placeholder placeholder
-               :on-blur save
-               :on-change #(reset! val (-> % .-target .-value))
-               :on-key-down #(case (.-which %)
-                               13 (save)
-                               27 (stop)
-                               nil)}])))
-
-(defn todo-item []
-   (fn [{:keys [title]}]
-     [:li
-      [:div.view
+(defn todo-item [{:keys [title completed]}]
+  [:li
+    [:div.view
        [:input.toggle {:type "checkbox"}]
-       [:label title]]]))
+       [:label title]]])
 
 ;; -------------------------
 ;; Views
 
 (defn home-page []
   [:main
-   [:div#heading [:h2 "Welcome to your To Do List"][:a {:href "/about"} "Learn More"]]
-   (let [items (vals @todos)]
+   [:div#heading [:h2 "Welcome to your To Do List"]
+                 [:a {:href "/about"} "Learn More"]]
+   (let [state @state-atom
+         items (vals (:todos state))]
       [:section#todoapp
-        [todo-input {:id "new-todo"
-                     :placeholder "Add a To Do"
-                     :on-save add-todo}]
+        (todo-input state)
        (when (-> items count pos?)
           [:section#main
            [:ul#todo-list
             (for [todo items]
-              ^{:key (:id todo)} [todo-item todo])]])])])
+              (todo-item todo))]])])])
 
 (defn about-page []
   [:main
@@ -78,6 +79,9 @@
 ;; Initialize app
 
 (defn mount-root []
+  ;; GET /list
+  ;; Parse the result
+  ;; swap! your atom with that parsed result
   (reagent/render [current-page] (.getElementById js/document "app")))
 
 (defn init! []

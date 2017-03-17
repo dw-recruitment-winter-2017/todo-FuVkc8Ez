@@ -19,23 +19,38 @@
            :content "width=device-width, initial-scale=1"}]
    (include-css (if (env :dev) "/css/site.css" "/css/site.min.css"))])
 
-(def todolist (atom ""))
+;; The single source of truth, the database
+;; {0 {:id 0 :text "a b c" :status "open"}}
+(def todolist-atom (atom {}))
+
+;; Okay, so we need a secondary truth for the id on each item
+(def counter-atom (atom 0))
 
 (defn loading-page []
   (html5
     (head)
     [:body {:class "body-container"}
      mount-target
-     (include-js "/js/app.js")
-     (swap! todolist println "take out more trash")]))
+     (include-js "/js/app.js")]))
 
-(defn list-get []
-  (str "hello there"))
+;; returns the dereferenced todolist-atom content
+(defn list-get [] @todolist-atom)
+
+(defn list-add
+  [params]
+  (let [id (swap! counter-atom inc)
+        new-list-str (:list params)
+        new-list (clojure.edn/read-string new-list-str)]
+    (swap! todolist-atom
+      (fn [todolist]
+        (assoc todolist id (assoc new-list :id id))))))
 
 (defroutes routes
-  (GET "/" request (loading-page))
+  (GET "/" [] (loading-page))
   (GET "/about" [] (loading-page))
-  (GET "/listget" [] (list-get))
+  (GET "/list" [] (list-get))
+  (POST "/list" request
+    (list-add (:params request))
 
   (resources "/")
   (not-found "Not Found"))
