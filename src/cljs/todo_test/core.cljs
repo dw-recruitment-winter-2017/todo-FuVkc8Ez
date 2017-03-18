@@ -3,13 +3,17 @@
               [reagent.session :as session]
               [secretary.core :as secretary :include-macros true]
               [accountant.core :as accountant]
-              [ajax.core :refer [POST]]))
-
+              [ajax.core :refer [POST]]
+              [ajax.core :refer [GET]]))
+(enable-console-print!)
 ;; This is our front end source of truth using the reagent/react version of an atom
 (defonce state-atom
- (reagent/atom
-   {:todos {}
-    :text nil}))
+ (reagent/atom {}))
+
+;; This is a holder for the text input contents
+;; TODO: figure out why reagent/atom won't allow a nested map so this can live in the state-atom
+(defonce text-atom (reagent/atom "hello there"))
+
 
 ;; This function adds a new to do item by POSTing to the backend and then updating the list with the response
 ; (defn add-todo [text]
@@ -58,11 +62,11 @@
 
 ;; This function handles the todo items themselves.
 ;; On the checkbox click, update-todo is called
-(defn todo-item [{:keys [title completed]}]
-  [:li
+(defn todo-item [{:keys [text completed id]}]
+  [:li {:id id :key id}
     [:div.view
        [:input.toggle {:type "checkbox"}]
-       [:label title]]])
+       [:label text]]])
 
 ;; -------------------------
 ;; Views
@@ -78,12 +82,12 @@
   [:main
    [:div#heading [:h2 "Welcome to your To Do List"]
                  [:a {:href "/about"} "Learn More"]]
-   (let [state @state-atom
-         items (vals (:todos state))]
+   (let [state @state-atom, items (vals state), text-state @text-atom text (vals state)]
       [:section#todoapp
-        (todo-input state)
-       (when (-> items count pos?)
+        (todo-input text)
+        (when (-> items count pos?)
           [:section#main
+            [:p "state"]
            [:ul#todo-list
             (for [todo items]
               (todo-item todo))]])])])
@@ -115,10 +119,20 @@
 ;; This function will:
 ;; - GET /list the current state of the todolist-atom from the backend
 ;; - parse the result
-;; - swap! the state-atom with that parsed result
+;; - reset the state-atom with that parsed result
 ;; - render the current page
+;; TODO: add an error handler
 (defn mount-root []
+  (GET "/list"
+        {:handler (fn [data]
+                    (let [updated-list (cljs.reader/read-string data)]
+                      (println "data contents:" data)
+                      (reset! state-atom updated-list)))})
   (reagent/render [current-page] (.getElementById js/document "app")))
+
+
+
+
 
 ;; This function initiates the whole app
 (defn init! []

@@ -63,24 +63,16 @@
               :output-dir "target/cljsbuild/public/js/out"
               :source-map true
               :optimizations :none
-              :pretty-print  true}}
-
-
-
-            }
-   }
-
+              :pretty-print  true}}}}
 
   :figwheel
   {:http-server-root "public"
    :server-port 3449
    :nrepl-port 7002
-   :nrepl-middleware ["cemerick.piggieback/wrap-cljs-repl"
-                      ]
+   :nrepl-middleware ["cemerick.piggieback/wrap-cljs-repl"]
+
    :css-dirs ["resources/public/css"]
    :ring-handler todo-test.handler/app}
-
-
 
   :profiles {:dev {:repl-options {:init-ns todo-test.repl
                                   :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
@@ -88,15 +80,14 @@
                    :dependencies [[ring/ring-mock "0.3.0"]
                                   [ring/ring-devel "1.5.0"]
                                   [prone "1.1.4"]
-                                  [figwheel-sidecar "0.5.8"]
+                                  [figwheel-sidecar "0.5.9"]
                                   [org.clojure/tools.nrepl "0.2.12"]
                                   [com.cemerick/piggieback "0.2.2-SNAPSHOT"]
-                                  [pjstadig/humane-test-output "0.8.1"]
-                                  ]
+                                  [pjstadig/humane-test-output "0.8.1"]]
 
                    :source-paths ["env/dev/clj"]
-                   :plugins [[lein-figwheel "0.5.8"]
-                             ]
+                   :plugins [[lein-figwheel "0.5.9"]]
+
 
                    :injections [(require 'pjstadig.humane-test-output)
                                 (pjstadig.humane-test-output/activate!)]
