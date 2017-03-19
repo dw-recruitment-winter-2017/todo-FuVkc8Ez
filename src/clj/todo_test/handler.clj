@@ -51,12 +51,11 @@
 (defn list-add
   "This function accepts the params from the POST request and swaps it into the todolist-atom"
   [params]
-  (let [id (swap! counter-atom inc)
-        new-list-str (:list params)
-        new-list (clojure.edn/read-string new-list-str)]
+  (let [id (swap! counter-atom inc)]
     (swap! todolist-atom
       (fn [todolist]
-        (assoc todolist id (assoc new-list :complete false :id id))))))
+        (assoc todolist id (assoc params :complete false :id id))))
+    (str @todolist-atom)))
 
 ;; Backend Routes
 (defroutes routes
@@ -70,8 +69,8 @@
   (GET "/list" [] (list-get))
 
   ;; gives the request to the list-add function
-  (POST "/list" request
-    (list-add request))
+  (POST "/add" request
+    (list-add (:params request)))
 
   (resources "/")
   (not-found "Not Found"))

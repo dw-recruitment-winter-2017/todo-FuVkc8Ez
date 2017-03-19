@@ -12,25 +12,21 @@
 
 ;; This is a holder for the text input contents
 ;; TODO: figure out why reagent/atom won't allow a nested map so this can live in the state-atom
-(defonce text-atom (reagent/atom {:text "hello there"}))
+(defonce text-atom (reagent/atom {}))
 
-(defn log [text] (println "text contents:" text))
 (defn error-handler []
-  (.log js/console (str "something bad happened: ")))
+  (.log js/console (str "something bad happened")))
 ;; This function adds a new to do item by POSTing to the backend and then updating the list with the response
 (defn add-todo []
   ; POST to backend
   ; improvement: add an error handler
   (let [text @text-atom]
-    (log text)
-    (POST "/list"
-          {:body text
+    (POST "/add"
+          {:params text
            :handler (fn [data]
                         (reset! state-atom (cljs.reader/read-string data)))
-           :error-handler error-handler})))
-
-
-
+           :error-handler error-handler})
+    (reset! text-atom nil)))
   ;; ^ Take backend's response
   ;; Parse response with edn and put it in state-atom
   ;; swap! todos with new db value
@@ -59,7 +55,7 @@
     [:input {:type "text" :value text :id "new-todo" :placeholder "What needs to be done?"
               :on-change #(reset! text-atom {:text (-> % .-target .-value)})}]
 
-    [:button {:on-click #(add-todo)}]])
+    [:button {:on-click #(add-todo)} "+"]])
 
 
     ;; Takes the text, turn it into a todo data structure
