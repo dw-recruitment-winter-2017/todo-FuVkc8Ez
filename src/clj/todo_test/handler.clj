@@ -31,8 +31,8 @@
      (include-js "/js/app.js")]))
 
 ;; The single source of truth, the "database"
-;; expected structure: {0 {:text "a b c" :complete true}}
-(def todolist-atom (atom {0 {:text "a b c" :complete false :id 0}}))
+;; expected structure: {0 {:text "a b c" :complete true :id 0}}
+(def todolist-atom (atom {}))
 
 ;; Okay, so we need a secondary truth for the id on each item
 (def counter-atom (atom 0))
@@ -56,7 +56,7 @@
         new-list (clojure.edn/read-string new-list-str)]
     (swap! todolist-atom
       (fn [todolist]
-        (assoc todolist id (assoc new-list :id id))))))
+        (assoc todolist id (assoc new-list :complete false :id id))))))
 
 ;; Backend Routes
 (defroutes routes
@@ -71,7 +71,7 @@
 
   ;; gives the request to the list-add function
   (POST "/list" request
-    (list-add (:params request)))
+    (list-add request))
 
   (resources "/")
   (not-found "Not Found"))

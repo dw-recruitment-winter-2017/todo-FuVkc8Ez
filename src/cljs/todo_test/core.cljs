@@ -12,19 +12,25 @@
 
 ;; This is a holder for the text input contents
 ;; TODO: figure out why reagent/atom won't allow a nested map so this can live in the state-atom
-(defonce text-atom (reagent/atom "hello there"))
+(defonce text-atom (reagent/atom {:text "hello there"}))
 
-
+(defn log [text] (println "text contents:" text))
+(defn error-handler []
+  (.log js/console (str "something bad happened: ")))
 ;; This function adds a new to do item by POSTing to the backend and then updating the list with the response
-; (defn add-todo [text]
-  ;; POST to backend
-  ;; improvement: add an error handler
-  ; (POST "/list"
-  ;       {:params {0
-  ;                 {:text "a b c"
-  ;                  :open true}}
-  ;         :handler (fn [data]
-  ;                   new-state (clojure.edn/read-string data))}))
+(defn add-todo []
+  ; POST to backend
+  ; improvement: add an error handler
+  (let [text @text-atom]
+    (log text)
+    (POST "/list"
+          {:body text
+           :handler (fn [data]
+                        (reset! state-atom (cljs.reader/read-string data)))
+           :error-handler error-handler})))
+
+
+
   ;; ^ Take backend's response
   ;; Parse response with edn and put it in state-atom
   ;; swap! todos with new db value
@@ -49,13 +55,13 @@
 ;; This function handles the value in the input, initially set to nil
 ;; The button triggers the click to fire the add-todo function
 (defn todo-input [text]
-  [:input {:type "text" :value text :id "new-todo" :placeholder "What needs to be done?"
-           :on-change #(swap! state-atom
-                          (fn [state]
-                           ;; when you get a property from a javascript object in clojure it needs a dash
-                           ;; we get targeted value from the state object that's been passed in
-                           (assoc state :text (-> % .-target .-value))))}])
-  ; [:button {:on-click}])
+  [:div
+    [:input {:type "text" :value text :id "new-todo" :placeholder "What needs to be done?"
+              :on-change #(reset! text-atom {:text (-> % .-target .-value)})}]
+
+    [:button {:on-click #(add-todo)}]])
+
+
     ;; Takes the text, turn it into a todo data structure
     ;; resets text to nil
 
@@ -82,12 +88,11 @@
   [:main
    [:div#heading [:h2 "Welcome to your To Do List"]
                  [:a {:href "/about"} "Learn More"]]
-   (let [state @state-atom, items (vals state), text-state @text-atom text (vals state)]
+   (let [state @state-atom, items (vals state), text-state @text-atom, text (vals text-state)]
       [:section#todoapp
         (todo-input text)
         (when (-> items count pos?)
           [:section#main
-            [:p "state"]
            [:ul#todo-list
             (for [todo items]
               (todo-item todo))]])])])
