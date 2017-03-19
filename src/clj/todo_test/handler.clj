@@ -55,7 +55,18 @@
     (swap! todolist-atom
       (fn [todolist]
         (assoc todolist id (assoc params :complete false :id id))))
-    (str @todolist-atom)))
+    (list-get)))
+
+(defn list-update
+  "This function accepts the params from the POST request and updates the todo list"
+  [params]
+  (let [id (:id params)]
+  ; loop through the atom
+  ; if the id matches then update the status
+    (swap! todolist-atom
+      (fn [todolist]
+        (assoc-in todolist [id :complete] true)))
+    (list-get)))
 
 ;; Backend Routes
 (defroutes routes
@@ -71,6 +82,10 @@
   ;; gives the request to the list-add function
   (POST "/add" request
     (list-add (:params request)))
+
+  ;; gives the request to the list-add function
+  (POST "/update" request
+    (list-update (:params request)))
 
   (resources "/")
   (not-found "Not Found"))

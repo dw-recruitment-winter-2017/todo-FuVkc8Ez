@@ -7,15 +7,18 @@
               [ajax.core :refer [GET]]))
 (enable-console-print!)
 ;; This is our front end source of truth using the reagent/react version of an atom
-(defonce state-atom
- (reagent/atom {}))
+(defonce state-atom (reagent/atom {}))
 
 ;; This is a holder for the text input contents
 ;; TODO: figure out why reagent/atom won't allow a nested map so this can live in the state-atom
 (defonce text-atom (reagent/atom {}))
 
+(defn handler [response]
+  (reset! state-atom (cljs.reader/read-string response)))
+
 (defn error-handler []
   (.log js/console (str "something bad happened")))
+
 ;; This function adds a new to do item by POSTing to the backend and then updating the list with the response
 (defn add-todo []
   ; POST to backend
@@ -23,8 +26,7 @@
   (let [text @text-atom]
     (POST "/add"
           {:params text
-           :handler (fn [data]
-                        (reset! state-atom (cljs.reader/read-string data)))
+           :handler handler
            :error-handler error-handler})
     (reset! text-atom nil)))
   ;; ^ Take backend's response
@@ -34,7 +36,11 @@
 
 ;; This function updates the status
 ;; improvement: expand this function or write a new one that will allow the
-(defn update-todo [id])
+(defn update-todo [id]
+    (POST "/update"
+        {:params {:id id}
+         :handler handler
+         :error-handler error-handler}))
   ;; POST to backend
   ;; Take backend's response
   ;; swap! todos with new db value
@@ -54,21 +60,22 @@
   [:div
     [:input {:type "text" :value text :id "new-todo" :placeholder "What needs to be done?"
               :on-change #(reset! text-atom {:text (-> % .-target .-value)})}]
-
     [:button {:on-click #(add-todo)} "+"]])
-
-
     ;; Takes the text, turn it into a todo data structure
     ;; resets text to nil
 
 
 ;; This function handles the todo items themselves.
 ;; On the checkbox click, update-todo is called
-(defn todo-item [{:keys [text completed id]}]
+(defn todo-item [{:keys [text complete id]}]
+  (.log js/console (true? complete))
   [:li {:id id :key id}
-    [:div.view
-       [:input.toggle {:type "checkbox"}]
+    [:div {:class (if (true? complete) "complete" "no")}
+       [:input {:type "checkbox"
+                :defaultChecked (true? complete)
+                :on-click #(update-todo id)}]
        [:label text]]])
+
 
 ;; -------------------------
 ;; Views
