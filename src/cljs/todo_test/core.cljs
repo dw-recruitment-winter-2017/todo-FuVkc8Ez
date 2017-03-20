@@ -47,7 +47,11 @@
 
 
 ;; This function removes a todo from the list of todos
-(defn remove-todo [id])
+; (defn remove-todo [id]
+;   (POST "/remove"
+;     {:params {:id id}
+;      :handler handler
+;      :error-handler error-handler}))
   ;; DELETE to backend
   ;; Take backend's response
   ;; Parse response
@@ -68,13 +72,14 @@
 ;; This function handles the todo items themselves.
 ;; On the checkbox click, update-todo is called
 (defn todo-item [{:keys [text complete id]}]
-  (.log js/console (true? complete))
   [:li {:id id :key id}
     [:div {:class (if (true? complete) "complete" "no")}
        [:input {:type "checkbox"
                 :defaultChecked (true? complete)
                 :on-click #(update-todo id)}]
        [:label text]]])
+      ;  [:button {:on-click #(remove-todo id)} "x"]
+
 
 
 ;; -------------------------
@@ -89,7 +94,7 @@
 ;; - as long as there are todo items, loops through each of them and passes that todo to todo-item to be rendered
 (defn home-page []
   [:main
-   [:div#heading [:h2 "Welcome to your To Do List"]
+   [:div#heading [:h2 "To Do List"]
                  [:a {:href "/about"} "Learn More"]]
    (let [state @state-atom, items (vals state), text-state @text-atom, text (vals text-state)]
       [:section#todoapp

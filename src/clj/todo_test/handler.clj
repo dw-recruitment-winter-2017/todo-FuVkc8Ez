@@ -65,8 +65,17 @@
   ; if the id matches then update the status
     (swap! todolist-atom
       (fn [todolist]
-        (assoc-in todolist [id :complete] true)))
+        (update-in todolist [id :complete] not)))
     (list-get)))
+
+; (defn list-remove
+;   "This function accepts the params from the POST request and swaps it into the todolist-atom"
+;   [params]
+;   (let [id (:id params)]
+;     (swap! todolist-atom
+;       (fn [todolist]
+;         (dissoc todolist [id])))
+;     (list-get)))
 
 ;; Backend Routes
 (defroutes routes
@@ -83,9 +92,13 @@
   (POST "/add" request
     (list-add (:params request)))
 
-  ;; gives the request to the list-add function
+  ;; gives the request to the list-update function
   (POST "/update" request
     (list-update (:params request)))
+
+  ; gives the request to the list-remove function
+  ; (POST "/remove" request
+  ;   (list-update (:params request)))
 
   (resources "/")
   (not-found "Not Found"))
