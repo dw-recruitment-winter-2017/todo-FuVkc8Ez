@@ -72,13 +72,14 @@
 ;; This function handles the todo items themselves.
 ;; On the checkbox click, update-todo is called
 (defn todo-item [{:keys [text complete id]}]
-  [:li {:id id :key id}
-    [:div {:class (if (true? complete) "complete" "no")}
-       [:input {:type "checkbox"
+  [:li {:id id :key id :class (if (true? complete) "complete" "no")}
+    [:label
+      [:input {:type "checkbox"
                 :defaultChecked (true? complete)
                 :on-click #(update-todo id)}]
-       [:label text]
-       [:button {:on-click #(remove-todo id)} "x"]]])
+      [:span text]]
+
+    [:button {:on-click #(remove-todo id)} "x"]])
 
 
 
@@ -95,8 +96,7 @@
 ;; - as long as there are todo items, loops through each of them and passes that todo to todo-item to be rendered
 (defn home-page []
   [:main
-   [:div#heading [:h2 "To Do List"]
-                 [:a {:href "/about"} "Learn More"]]
+   [:div#heading [:h1 "To Do List"]]
    (let [state @state-atom, items (vals state), text-state @text-atom, text (vals text-state)]
       [:section#todoapp
         (todo-input text)
@@ -104,13 +104,14 @@
           [:section#main
            [:ul#todo-list
             (for [todo items]
-              (todo-item todo))]])])])
+              (todo-item todo))]])])
+   [:a {:href "/about"} "Learn more about the app >"]])
 
 ;; This function renders the view for the about page
 (defn about-page []
   [:main
    [:div#heading [:h2 "About your To Do List"] [:a {:href "/"} "Back to the list"]]
-   [:p "This is a simple To Do list app built with Clojure using reagent and compojure."]])
+   [:p "This is a simple To Do list app built with Clojure using Reagent and Compojure with styling handled by Marx."]])
 
 ;; This function gets the current page and inserts it into a div
 (defn current-page []
