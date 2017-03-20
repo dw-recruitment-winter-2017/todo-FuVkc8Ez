@@ -68,14 +68,14 @@
         (update-in todolist [id :complete] not)))
     (list-get)))
 
-; (defn list-remove
-;   "This function accepts the params from the POST request and swaps it into the todolist-atom"
-;   [params]
-;   (let [id (:id params)]
-;     (swap! todolist-atom
-;       (fn [todolist]
-;         (dissoc todolist [id])))
-;     (list-get)))
+(defn list-remove
+  "This function accepts the params from the POST request and swaps it into the todolist-atom"
+  [params]
+  (let [id (:id params)]
+    (swap! todolist-atom
+      (fn [todolist]
+        (dissoc todolist id)))
+    (list-get)))
 
 ;; Backend Routes
 (defroutes routes
@@ -97,8 +97,8 @@
     (list-update (:params request)))
 
   ; gives the request to the list-remove function
-  ; (POST "/remove" request
-  ;   (list-update (:params request)))
+  (POST "/remove" request
+    (list-remove (:params request)))
 
   (resources "/")
   (not-found "Not Found"))

@@ -37,21 +37,21 @@
 ;; This function updates the status
 ;; improvement: expand this function or write a new one that will allow the
 (defn update-todo [id]
-    (POST "/update"
-        {:params {:id id}
-         :handler handler
-         :error-handler error-handler}))
+  (POST "/update"
+      {:params {:id id}
+        :handler handler
+        :error-handler error-handler}))
   ;; POST to backend
   ;; Take backend's response
   ;; swap! todos with new db value
 
 
 ;; This function removes a todo from the list of todos
-; (defn remove-todo [id]
-;   (POST "/remove"
-;     {:params {:id id}
-;      :handler handler
-;      :error-handler error-handler}))
+(defn remove-todo [id]
+  (POST "/remove"
+    {:params {:id id}
+     :handler handler
+     :error-handler error-handler}))
   ;; DELETE to backend
   ;; Take backend's response
   ;; Parse response
@@ -77,8 +77,9 @@
        [:input {:type "checkbox"
                 :defaultChecked (true? complete)
                 :on-click #(update-todo id)}]
-       [:label text]]])
-      ;  [:button {:on-click #(remove-todo id)} "x"]
+       [:label text]
+       [:button {:on-click #(remove-todo id)} "x"]]])
+
 
 
 
@@ -142,9 +143,6 @@
                       (println "data contents:" data)
                       (reset! state-atom updated-list)))})
   (reagent/render [current-page] (.getElementById js/document "app")))
-
-
-
 
 
 ;; This function initiates the whole app
