@@ -5,7 +5,10 @@
               [accountant.core :as accountant]
               [ajax.core :refer [POST]]
               [ajax.core :refer [GET]]))
+
+;; This enables JS console logging
 (enable-console-print!)
+
 ;; This is our front end source of truth using the reagent/react version of an atom
 (defonce state-atom (reagent/atom {}))
 
@@ -14,64 +17,51 @@
 (defonce text-atom (reagent/atom {}))
 
 (defn handler [response]
+  "This is the general success handler for the http requests"
   (reset! state-atom (cljs.reader/read-string response)))
 
 (defn error-handler []
+  "This is the general error handler for the http requests"
   (.log js/console (str "something bad happened")))
 
-;; This function adds a new to do item by POSTing to the backend and then updating the list with the response
+
 (defn add-todo []
-  ; POST to backend
-  ; improvement: add an error handler
+  "This function adds a new todo item by POSTing to the backend and then updating the list with the response and resets the text input to nil"
   (let [text @text-atom]
     (POST "/add"
           {:params text
            :handler handler
            :error-handler error-handler})
     (reset! text-atom nil)))
-  ;; ^ Take backend's response
-  ;; Parse response with edn and put it in state-atom
-  ;; swap! todos with new db value
 
 
-;; This function updates the status
-;; improvement: expand this function or write a new one that will allow the
 (defn update-todo [id]
+  "This function updates the todo item status"
   (POST "/update"
       {:params {:id id}
         :handler handler
         :error-handler error-handler}))
-  ;; POST to backend
-  ;; Take backend's response
-  ;; swap! todos with new db value
 
-
-;; This function removes a todo from the list of todos
 (defn remove-todo [id]
+  "This function removes a todo from the list of todos"
   (POST "/remove"
     {:params {:id id}
      :handler handler
      :error-handler error-handler}))
-  ;; DELETE to backend
-  ;; Take backend's response
-  ;; Parse response
-  ;; reset! todos with new db value
 
 
-;; This function handles the value in the input, initially set to nil
 ;; The button triggers the click to fire the add-todo function
 (defn todo-input [text]
+  "This function handles the value in the input, initially set to nil"
   [:div
     [:input {:type "text" :value text :id "new-todo" :placeholder "What needs to be done?"
               :on-change #(reset! text-atom {:text (-> % .-target .-value)})}]
     [:button {:on-click #(add-todo)} "+"]])
-    ;; Takes the text, turn it into a todo data structure
-    ;; resets text to nil
 
 
-;; This function handles the todo items themselves.
-;; On the checkbox click, update-todo is called
+;; On the checkbox click, update-todo is called, on the button click the item is deleted
 (defn todo-item [{:keys [text complete id]}]
+  "This function handles the todo items themselves"
   [:li {:id id :key id :class (if (true? complete) "complete" "no")}
     [:label
       [:input {:type "checkbox"
@@ -87,7 +77,6 @@
 ;; -------------------------
 ;; Views
 
-;; This function renders the view for the home page
 ;; The let portion does the following:
 ;; - binds the dereferenced state-atom to state
 ;; - binds the values of the todo list to items
@@ -95,6 +84,7 @@
 ;; - checks that there are todos in items
 ;; - as long as there are todo items, loops through each of them and passes that todo to todo-item to be rendered
 (defn home-page []
+  "This function renders the view for the home page"
   [:main
    [:div#heading [:h1 "To Do List"]]
    (let [state @state-atom, items (vals state), text-state @text-atom, text (vals text-state)]
@@ -107,15 +97,18 @@
               (todo-item todo))]])])
    [:a {:href "/about"} "Learn more about the app >"]])
 
-;; This function renders the view for the about page
+
 (defn about-page []
+  "This function renders the view for the about page"
   [:main
    [:div#heading [:h2 "About your To Do List"] [:a {:href "/"} "Back to the list"]]
    [:p "This is a simple To Do list app built with Clojure using Reagent and Compojure with styling handled by Marx."]])
 
-;; This function gets the current page and inserts it into a div
+
 (defn current-page []
+  "This function gets the current page and inserts it into a div"
   [:div [(session/get :current-page)]])
+
 
 ;; -------------------------
 ;; Routes
@@ -136,18 +129,18 @@
 ;; - parse the result
 ;; - reset the state-atom with that parsed result
 ;; - render the current page
-;; TODO: add an error handler
 (defn mount-root []
   (GET "/list"
         {:handler (fn [data]
                     (let [updated-list (cljs.reader/read-string data)]
                       (println "data contents:" data)
-                      (reset! state-atom updated-list)))})
+                      (reset! state-atom updated-list)))
+          :error-handler error-handler})
   (reagent/render [current-page] (.getElementById js/document "app")))
 
 
-;; This function initiates the whole app
 (defn init! []
+  "This function initiates the whole app"
   (accountant/configure-navigation!
     {:nav-handler
      (fn [path]

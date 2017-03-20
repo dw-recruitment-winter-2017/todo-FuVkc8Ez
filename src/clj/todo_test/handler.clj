@@ -61,15 +61,13 @@
   "This function accepts the params from the POST request and updates the todo list"
   [params]
   (let [id (:id params)]
-  ; loop through the atom
-  ; if the id matches then update the status
     (swap! todolist-atom
       (fn [todolist]
         (update-in todolist [id :complete] not)))
     (list-get)))
 
 (defn list-remove
-  "This function accepts the params from the POST request and swaps it into the todolist-atom"
+  "This function accepts the params from the POST request and deletes it from the todolist-atom"
   [params]
   (let [id (:id params)]
     (swap! todolist-atom
